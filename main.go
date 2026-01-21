@@ -72,14 +72,44 @@ func updateProdukByID(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Product not found", http.StatusNotFound)
 }
 
+func deleteProdukByID(w http.ResponseWriter, r *http.Request) {
+
+	//get id dari request
+	idStr := strings.TrimPrefix(r.URL.Path, "/api/produk/")
+
+	// ganti jadi int
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+		return
+	}
+
+	//loop produk, cari id dan index yang mau dihapus
+	for i, p := range produk {
+		if p.ID == id {
+			// buat slice baru dengan data sebelum dan sesudah index
+			produk = append(produk[:i], produk[i+1:]...)
+
+			w.Header().Set("Content-Type", "application/json")
+
+			json.NewEncoder(w).Encode(map[string]string{"message": "sukses delete"})
+			return
+		}
+	}
+	http.Error(w, "Product not found", http.StatusNotFound)
+}
+
 func main() {
 	// GET localhost:8080/api/produk/{id}
 	// PUT localhost:8080/api/produk/{id}
+	// DELETE localhost:8080/api/produk/{id}
 	http.HandleFunc("/api/produk/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			getProdukByID(w, r)
 		} else if r.Method == "PUT" {
 			updateProdukByID(w, r)
+		} else if r.Method == "DELETE" {
+			deleteProdukByID(w, r)
 		}
 	})
 
