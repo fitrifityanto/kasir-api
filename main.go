@@ -19,10 +19,30 @@ var produk = []Produk{
 }
 
 func main() {
-	// GET localhost:8080/produk
-	http.HandleFunc("/produk", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(produk)
+	// GET localhost:8080/api/produk
+	// POST localhost:8080/api/produk
+	http.HandleFunc("/api/produk", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(produk)
+		} else if r.Method == "POST" {
+			// baca dari Request
+			var produkBaru Produk
+			err := json.NewDecoder(r.Body).Decode(&produkBaru)
+			if err != nil {
+				http.Error(w, "Invalid request", http.StatusBadRequest)
+				return
+			}
+
+			//masukkan data kedalam variable produk
+			produkBaru.ID = len(produk) + 1
+			produk = append(produk, produkBaru)
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(produkBaru)
+		}
 	})
 
 	// localhost:8080/health
