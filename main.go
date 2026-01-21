@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type Produk struct {
@@ -16,9 +18,30 @@ type Produk struct {
 var produk = []Produk{
 	{ID: 1, Nama: "Beras", Harga: 70000, Stok: 10},
 	{ID: 2, Nama: "Gula", Harga: 15000, Stok: 20},
+	{ID: 3, Nama: "Kopi Kacamata", Harga: 12000, Stok: 5},
 }
 
 func main() {
+	// GET localhost:8080/api/produk/{id}
+	http.HandleFunc("/api/produk/", func(w http.ResponseWriter, r *http.Request) {
+
+		idStr := strings.TrimPrefix(r.URL.Path, "/api/produk/")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid product ID", http.StatusBadRequest)
+			return
+		}
+
+		for _, p := range produk {
+			if p.ID == id {
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(p)
+				return
+			}
+		}
+		http.Error(w, "Product not found", http.StatusNotFound)
+	})
+
 	// GET localhost:8080/api/produk
 	// POST localhost:8080/api/produk
 	http.HandleFunc("/api/produk", func(w http.ResponseWriter, r *http.Request) {
