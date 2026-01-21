@@ -21,25 +21,66 @@ var produk = []Produk{
 	{ID: 3, Nama: "Kopi Kacamata", Harga: 12000, Stok: 5},
 }
 
-func main() {
-	// GET localhost:8080/api/produk/{id}
-	http.HandleFunc("/api/produk/", func(w http.ResponseWriter, r *http.Request) {
+func getProdukByID(w http.ResponseWriter, r *http.Request) {
+	idStr := strings.TrimPrefix(r.URL.Path, "/api/produk/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+		return
+	}
 
-		idStr := strings.TrimPrefix(r.URL.Path, "/api/produk/")
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			http.Error(w, "Invalid product ID", http.StatusBadRequest)
+	for _, p := range produk {
+		if p.ID == id {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(p)
 			return
 		}
+	}
+	http.Error(w, "Product not found", http.StatusNotFound)
+}
 
-		for _, p := range produk {
-			if p.ID == id {
-				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(p)
-				return
-			}
+func updateProdukByID(w http.ResponseWriter, r *http.Request) {
+	//get id dari request
+	idStr := strings.TrimPrefix(r.URL.Path, "/api/produk/")
+
+	// ganti jadi int
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+		return
+	}
+
+	//get data dari request
+	var updateProduk Produk
+	err = json.NewDecoder(r.Body).Decode(&updateProduk)
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	//loop produk, cari id, ganti sesuai data dari request
+	for i := range produk {
+		if produk[i].ID == id {
+			updateProduk.ID = id
+			produk[i] = updateProduk
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(updateProduk)
+			return
 		}
-		http.Error(w, "Product not found", http.StatusNotFound)
+	}
+	http.Error(w, "Product not found", http.StatusNotFound)
+}
+
+func main() {
+	// GET localhost:8080/api/produk/{id}
+	// PUT localhost:8080/api/produk/{id}
+	http.HandleFunc("/api/produk/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			getProdukByID(w, r)
+		} else if r.Method == "PUT" {
+			updateProdukByID(w, r)
+		}
 	})
 
 	// GET localhost:8080/api/produk
