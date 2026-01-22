@@ -7,6 +7,45 @@ import (
 	"strings"
 )
 
+func handleProduk(w http.ResponseWriter, r *http.Request) {
+
+	switch r.Method {
+	case "GET":
+		response := Response{
+			Message: "Berhasil mengambil data produk",
+			Data:    produk,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+
+	case "POST":
+		// baca dari Request
+		var produkBaru Produk
+		err := json.NewDecoder(r.Body).Decode(&produkBaru)
+		if err != nil {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+
+		//masukkan data kedalam variable produk
+		produkBaru.ID = len(produk) + 1
+		produk = append(produk, produkBaru)
+
+		response := Response{
+			Message: "produk berhasil ditambahkan",
+			Data:    produkBaru,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(response)
+
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+
+	}
+}
+
 func getProdukByID(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/api/produk/")
 	id, err := strconv.Atoi(idStr)

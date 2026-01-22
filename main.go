@@ -18,44 +18,14 @@ func main() {
 			updateProdukByID(w, r)
 		case "DELETE":
 			deleteProdukByID(w, r)
-		}
-	})
-
-	// GET localhost:8080/api/produk
-	// POST localhost:8080/api/produk
-	http.HandleFunc("/api/produk", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case "GET":
-			response := Response{
-				Message: "Berhasil mengambil data produk",
-				Data:    produk,
-			}
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
-		case "POST":
-			// baca dari Request
-			var produkBaru Produk
-			err := json.NewDecoder(r.Body).Decode(&produkBaru)
-			if err != nil {
-				http.Error(w, "Invalid request", http.StatusBadRequest)
-				return
-			}
-
-			//masukkan data kedalam variable produk
-			produkBaru.ID = len(produk) + 1
-			produk = append(produk, produkBaru)
-
-			response := Response{
-				Message: "produk berhasil ditambahkan",
-				Data:    produkBaru,
-			}
-
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusCreated)
-			json.NewEncoder(w).Encode(response)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 
 		}
 	})
+
+	// route produk tanpa ID
+	http.HandleFunc("/api/produk", handleProduk)
 
 	// localhost:8080/health
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
