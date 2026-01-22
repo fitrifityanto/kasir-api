@@ -17,8 +17,12 @@ func getProdukByID(w http.ResponseWriter, r *http.Request) {
 
 	for _, p := range produk {
 		if p.ID == id {
+			response := Response{
+				Message: "Detail produk ditemukan",
+				Data:    p,
+			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(p)
+			json.NewEncoder(w).Encode(response)
 			return
 		}
 	}
@@ -50,8 +54,13 @@ func updateProdukByID(w http.ResponseWriter, r *http.Request) {
 			updateProduk.ID = id
 			produk[i] = updateProduk
 
+			response := Response{
+				Message: "Produk berhasil di update",
+				Data:    updateProduk,
+			}
+
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(updateProduk)
+			json.NewEncoder(w).Encode(response)
 			return
 		}
 	}
@@ -76,9 +85,14 @@ func deleteProdukByID(w http.ResponseWriter, r *http.Request) {
 			// buat slice baru dengan data sebelum dan sesudah index
 			produk = append(produk[:i], produk[i+1:]...)
 
+			response := Response{
+				Message: "Produk berhasil di hapus",
+				Data:    nil,
+			}
+
 			w.Header().Set("Content-Type", "application/json")
 
-			json.NewEncoder(w).Encode(map[string]string{"message": "sukses delete"})
+			json.NewEncoder(w).Encode(response)
 			return
 		}
 	}

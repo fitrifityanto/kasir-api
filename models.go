@@ -7,6 +7,11 @@ type Produk struct {
 	Stok  int    `json:"stok"`
 }
 
+type Response struct {
+	Message string `json:"message"`
+	Data    any    `json:"data"`
+}
+
 var produk = []Produk{
 	{ID: 1, Nama: "Beras", Harga: 70000, Stok: 10},
 	{ID: 2, Nama: "Gula", Harga: 15000, Stok: 20},

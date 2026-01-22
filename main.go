@@ -26,8 +26,12 @@ func main() {
 	http.HandleFunc("/api/produk", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
+			response := Response{
+				Message: "Berhasil mengambil data produk",
+				Data:    produk,
+			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(produk)
+			json.NewEncoder(w).Encode(response)
 		case "POST":
 			// baca dari Request
 			var produkBaru Produk
@@ -41,9 +45,14 @@ func main() {
 			produkBaru.ID = len(produk) + 1
 			produk = append(produk, produkBaru)
 
+			response := Response{
+				Message: "produk berhasil ditambahkan",
+				Data:    produkBaru,
+			}
+
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusCreated)
-			json.NewEncoder(w).Encode(produkBaru)
+			json.NewEncoder(w).Encode(response)
 
 		}
 	})
