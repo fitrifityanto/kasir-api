@@ -1,0 +1,7 @@
+# air hot reload
+/tmp/
+.air.toml
+
+
+bruno/kasir-api/environments/
+.env
