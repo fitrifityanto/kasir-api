@@ -1,0 +1,20 @@
+meta {
+  name: POST Produk
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/api/produk
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {"Nama": "Minyak Goreng", "Harga": 20000, "Stok": 10}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

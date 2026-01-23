@@ -1,0 +1,16 @@
+meta {
+  name: Delete CategoryByID
+  type: http
+  seq: 11
+}
+
+delete {
+  url: {{base_url}}/api/categories/3
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,16 @@
+meta {
+  name: Get Produk
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/produk
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

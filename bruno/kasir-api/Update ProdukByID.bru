@@ -1,0 +1,24 @@
+meta {
+  name: Update ProdukByID
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{base_url}}/api/produk/4
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nama": "Minyak Goreng Kita",
+    "harga": 16000,
+    "stok": 13
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
