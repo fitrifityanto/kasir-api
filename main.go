@@ -3,6 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"kasir-api/database"
+	"kasir-api/handlers"
+	"kasir-api/repositories"
+	"kasir-api/services"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -11,7 +16,8 @@ import (
 )
 
 type Config struct {
-	Port string `mapstructure:"PORT"`
+	Port   string `mapstructure:"PORT"`
+	DBConn string `mapstructure:"DB_CONN"`
 }
 
 func main() {
@@ -24,46 +30,61 @@ func main() {
 	}
 
 	config := Config{
-		Port: viper.GetString("PORT"),
+		Port:   viper.GetString("PORT"),
+		DBConn: viper.GetString("DB_CONN"),
 	}
+
+	// setup database
+	db, err := database.InitDB(config.DBConn)
+	if err != nil {
+		log.Fatal("Failed to initialize database: ", err)
+	}
+	defer db.Close()
+
+	productRepo := repositories.NewProductRepository(db)
+	productService := services.NewProductService(productRepo)
+	productHandler := handlers.NewProductHandler(productService)
+
+	// setup routes
+	http.HandleFunc("/api/product", productHandler.HandleProducts)
 
 	// GET localhost:8080/api/produk/{id}
 	// PUT localhost:8080/api/produk/{id}
 	// DELETE localhost:8080/api/produk/{id}
-	http.HandleFunc("/api/produk/", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case "GET":
-			getProdukByID(w, r)
-		case "PUT":
-			updateProdukByID(w, r)
-		case "DELETE":
-			deleteProdukByID(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-
-		}
-	})
+	// http.HandleFunc("/api/produk/", func(w http.ResponseWriter, r *http.Request) {
+	// 	switch r.Method {
+	// 	case "GET":
+	// 		getProdukByID(w, r)
+	// 	case "PUT":
+	// 		updateProdukByID(w, r)
+	// 	case "DELETE":
+	// 		deleteProdukByID(w, r)
+	// 	default:
+	// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	//
+	// 	}
+	// })
 
 	// route produk tanpa ID
-	http.HandleFunc("/api/produk", handleProduk)
+	// http.HandleFunc("/api/produk", handleProduk)
 
 	// route category
-	http.HandleFunc("/api/categories", handleCategories)
+	// http.HandleFunc("/api/categories", handleCategories)
 
 	// route category dengan ID
-	http.HandleFunc("/api/categories/", func(w http.ResponseWriter, r *http.Request) {
-
-		switch r.Method {
-		case "GET":
-			getCategoryByID(w, r)
-		case "PUT":
-			updateCategoryByID(w, r)
-		case "DELETE":
-			deleteCategoryByID(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
+	// http.HandleFunc("/api/categories/", func(w http.ResponseWriter, r *http.Request) {
+	//
+	// 	switch r.Method {
+	// 	case "GET":
+	// 		getCategoryByID(w, r)
+	// 	case "PUT":
+	// 		updateCategoryByID(w, r)
+	// 	case "DELETE":
+	// 		deleteCategoryByID(w, r)
+	// 	default:
+	// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	// 	}
+	// })
 
 	// localhost:8080/health
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +99,7 @@ func main() {
 
 	fmt.Println("Server running di localhost:" + config.Port)
 
-	err := http.ListenAndServe(":"+config.Port, nil)
+	err = http.ListenAndServe(":"+config.Port, nil)
 	if err != nil {
 		fmt.Println("gagal running sever")
 	}
