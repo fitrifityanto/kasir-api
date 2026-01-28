@@ -1,20 +1,20 @@
 meta {
-  name: Update ProdukByID
+  name: Update ProductByID
   type: http
   seq: 5
 }
 
 put {
-  url: {{base_url}}/api/produk/4
+  url: {{base_url}}/api/product/4
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "nama": "Minyak Goreng Kita",
-    "harga": 16000,
-    "stok": 13
+      "name": "Sunlight",
+      "price": 15000,
+      "stock": 14
   }
 }
 

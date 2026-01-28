@@ -1,17 +1,17 @@
 meta {
-  name: POST Produk
+  name: POST Product
   type: http
   seq: 4
 }
 
 post {
-  url: {{base_url}}/api/produk
+  url: {{base_url}}/api/product
   body: json
   auth: inherit
 }
 
 body:json {
-  {"Nama": "Minyak Goreng", "Harga": 20000, "Stok": 10}
+  {"name": "Beras", "price": 70000, "stock": 10}
 }
 
 settings {

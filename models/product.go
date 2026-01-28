@@ -2,9 +2,9 @@ package models
 
 type Product struct {
 	ID    int    `json:"id"`
-	Name  string `json:"nama"`
-	Price int    `json:"harga"`
-	Stock int    `json:"stok"`
+	Name  string `json:"name"`
+	Price int    `json:"price"`
+	Stock int    `json:"stock"`
 }
 
 type Category struct {

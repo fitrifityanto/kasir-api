@@ -47,44 +47,7 @@ func main() {
 
 	// setup routes
 	http.HandleFunc("/api/product", productHandler.HandleProducts)
-
-	// GET localhost:8080/api/produk/{id}
-	// PUT localhost:8080/api/produk/{id}
-	// DELETE localhost:8080/api/produk/{id}
-	// http.HandleFunc("/api/produk/", func(w http.ResponseWriter, r *http.Request) {
-	// 	switch r.Method {
-	// 	case "GET":
-	// 		getProdukByID(w, r)
-	// 	case "PUT":
-	// 		updateProdukByID(w, r)
-	// 	case "DELETE":
-	// 		deleteProdukByID(w, r)
-	// 	default:
-	// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	//
-	// 	}
-	// })
-
-	// route produk tanpa ID
-	// http.HandleFunc("/api/produk", handleProduk)
-
-	// route category
-	// http.HandleFunc("/api/categories", handleCategories)
-
-	// route category dengan ID
-	// http.HandleFunc("/api/categories/", func(w http.ResponseWriter, r *http.Request) {
-	//
-	// 	switch r.Method {
-	// 	case "GET":
-	// 		getCategoryByID(w, r)
-	// 	case "PUT":
-	// 		updateCategoryByID(w, r)
-	// 	case "DELETE":
-	// 		deleteCategoryByID(w, r)
-	// 	default:
-	// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	// 	}
-	// })
+	http.HandleFunc("/api/product/", productHandler.HandleProductByID)
 
 	// localhost:8080/health
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
