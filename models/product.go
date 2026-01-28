@@ -6,9 +6,3 @@ type Product struct {
 	Price int    `json:"price"`
 	Stock int    `json:"stock"`
 }
-
-type Category struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
