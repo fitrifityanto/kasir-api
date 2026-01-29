@@ -5,16 +5,17 @@ meta {
 }
 
 put {
-  url: {{base_url}}/api/product/4
+  url: {{base_url}}/api/product/3
   body: json
   auth: inherit
 }
 
 body:json {
   {
-      "name": "Sunlight",
+      "name": "Minyak Goreng",
       "price": 15000,
-      "stock": 14
+      "stock": 14,
+    "category_id": 2
   }
 }
 
