@@ -61,9 +61,16 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// ambil ulang data dari DB agar category_name terisi (JOIN)
+	fullProduct, err := h.service.GetByID(product.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
 	response := models.Response{
 		Message: "Successfully created product",
-		Data:    product,
+		Data:    fullProduct,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -138,9 +145,16 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// ambil ulang data dari DB agar category_name terisi (JOIN)
+	updatedProduct, err := h.service.GetByID(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
 	response := models.Response{
 		Message: "Successfully updated product",
-		Data:    product,
+		Data:    updatedProduct,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
