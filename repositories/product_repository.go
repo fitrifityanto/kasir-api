@@ -15,7 +15,7 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 }
 
 func (repo *ProductRepository) GetAll() ([]models.Product, error) {
-	query := "SELECT p.id, p.name, p.price, p.stock, p.category_id, c.name as category_name FROM products p JOIN categories c ON p.category_id=c.id"
+	query := "SELECT p.id, p.name, p.price, p.stock, p.category_id, c.id, c.name, c.description FROM products p LEFT JOIN categories c ON p.category_id=c.id"
 	rows, err := repo.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -26,32 +26,109 @@ func (repo *ProductRepository) GetAll() ([]models.Product, error) {
 	products := make([]models.Product, 0)
 	for rows.Next() {
 		var p models.Product
-		err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &p.CategoryID, &p.CategoryName)
+
+		// gunakan tipe Null sebagai penampung sementara
+		var pCategoryID sql.NullInt64
+		var cID sql.NullInt64
+		var cName, cDescription sql.NullString
+
+		// scan ke variabel penampung
+		err := rows.Scan(
+			&p.ID, &p.Name, &p.Price, &p.Stock,
+			&pCategoryID, &cID, &cName, &cDescription,
+		)
 		if err != nil {
 			return nil, err
 		}
+
+		// masukkan data ke struct jika valid
+		if pCategoryID.Valid {
+			p.CategoryID = int(pCategoryID.Int64)
+		}
+
+		if cID.Valid {
+			p.Category = &models.Category{
+				ID:          int(cID.Int64),
+				Name:        cName.String,
+				Description: cDescription.String,
+			}
+		} else {
+			p.Category = nil
+		}
+
 		products = append(products, p)
 	}
+
+	// 	p.Category = &models.Category{}
+	// 	err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &p.CategoryID, &p.Category.ID, &p.Category.Name, &p.Category.Description)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	products = append(products, p)
+	// }
 	return products, nil
 }
 
 func (repo *ProductRepository) Create(product *models.Product) error {
 	query := "INSERT INTO products (name, price, stock, category_id) VALUES ($1, $2, $3, $4) RETURNING id"
-	err := repo.db.QueryRow(query, product.Name, product.Price, product.Stock, product.CategoryID).Scan(&product.ID)
+
+	var catID any = product.CategoryID
+	if product.CategoryID == 0 {
+		catID = nil
+	}
+
+	err := repo.db.QueryRow(query, product.Name, product.Price, product.Stock, catID).Scan(&product.ID)
 	return err
 }
 
 func (repo *ProductRepository) GetByID(id int) (*models.Product, error) {
-	query := "SELECT p.id, p.name, p.price, p.stock, p.category_id, c.name as category_name FROM products p JOIN categories c ON p.category_id=c.id WHERE p.id = $1"
+	query := "SELECT p.id, p.name, p.price, p.stock, p.category_id, c.id ,c.name, c.description FROM products p LEFT JOIN categories c ON p.category_id=c.id WHERE p.id = $1"
 
 	var p models.Product
-	err := repo.db.QueryRow(query, id).Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &p.CategoryID, &p.CategoryName)
+
+	// gunakan var penampung untuk kolom yang bisa null
+
+	var pCategoryID sql.NullInt64
+	var cID sql.NullInt64
+	var cName, cDescription sql.NullString
+
+	// scan ke var penampung
+	err := repo.db.QueryRow(query, id).Scan(
+		&p.ID, &p.Name, &p.Price, &p.Stock,
+		&pCategoryID, &cID, &cName, &cDescription,
+	)
+
 	if err == sql.ErrNoRows {
 		return nil, errors.New("product not found")
 	}
 	if err != nil {
 		return nil, err
 	}
+
+	// mapping pCategoryID ke p.CategoryID
+	if pCategoryID.Valid {
+		p.CategoryID = int(pCategoryID.Int64)
+	}
+
+	// mapping data kategori hanya jika valid
+	if cID.Valid {
+		p.Category = &models.Category{
+			ID:          int(cID.Int64),
+			Name:        cName.String,
+			Description: cDescription.String,
+		}
+	} else {
+		p.Category = nil
+	}
+
+	// p.Category = &models.Category{}
+	// err := repo.db.QueryRow(query, id).Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &p.CategoryID, &p.Category.ID, &p.Category.Name, &p.Category.Description)
+	// if err == sql.ErrNoRows {
+	// 	return nil, errors.New("product not found")
+	// }
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return &p, nil
 }

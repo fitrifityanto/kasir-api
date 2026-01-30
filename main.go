@@ -42,12 +42,13 @@ func main() {
 	defer db.Close()
 
 	productRepo := repositories.NewProductRepository(db)
-	productService := services.NewProductService(productRepo)
-	productHandler := handlers.NewProductHandler(productService)
 
 	categoryRepo := repositories.NewCategoryRepository(db)
 	categoryService := services.NewCategoryService(categoryRepo)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
+
+	productService := services.NewProductService(productRepo, categoryRepo)
+	productHandler := handlers.NewProductHandler(productService)
 
 	// setup routes
 	http.HandleFunc("/api/product", productHandler.HandleProducts)

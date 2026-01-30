@@ -18,6 +18,16 @@ func NewProductHandler(service *services.ProductService) *ProductHandler {
 	return &ProductHandler{service: service}
 }
 
+func (h *ProductHandler) sendResponse(w http.ResponseWriter, status int, message string, data any) {
+	response := models.Response{
+		Message: message,
+		Data:    data,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(response)
+}
+
 // HandleProducts - GET /api/product & POST /api/product
 func (h *ProductHandler) HandleProducts(w http.ResponseWriter, r *http.Request) {
 
@@ -57,7 +67,8 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	err = h.service.Create(&product)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		// http.Error(w, err.Error(), http.StatusBadRequest)
+		h.sendResponse(w, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
 
@@ -107,7 +118,9 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	product, err := h.service.GetByID(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		// http.Error(w, err.Error(), http.StatusNotFound)
+		h.sendResponse(w, http.StatusNotFound, err.Error(), nil)
+
 		return
 	}
 
@@ -141,14 +154,17 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = h.service.Update(&product)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		// http.Error(w, err.Error(), http.StatusBadRequest)
+		h.sendResponse(w, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
 
 	// ambil ulang data dari DB agar category_name terisi (JOIN)
 	updatedProduct, err := h.service.GetByID(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		// http.Error(w, err.Error(), http.StatusNotFound)
+		h.sendResponse(w, http.StatusNotFound, err.Error(), nil)
+
 		return
 	}
 
@@ -172,7 +188,8 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	err = h.service.Delete(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		// http.Error(w, err.Error(), http.StatusInternalServerError)
+		h.sendResponse(w, http.StatusNotFound, err.Error(), nil)
 		return
 	}
 
