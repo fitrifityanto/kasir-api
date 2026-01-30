@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"kasir-api/models"
 	"kasir-api/services"
 	"net/http"
@@ -157,13 +158,31 @@ func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	err = h.service.Delete(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+		if errors.Is(err, models.ErrCategoryHasProducts) {
+			h.sendResponse(w, http.StatusConflict, err.Error(), nil)
+			return
+		}
+
+		if errors.Is(err, models.ErrCategoryNotFound) {
+			h.sendResponse(w, http.StatusNotFound, err.Error(), nil)
+			return
+		}
+		// http.Error(w, err.Error(), http.StatusInternalServerError)
+
+		h.sendResponse(w, http.StatusInternalServerError, "Internal Server Error", nil)
 		return
 	}
+	h.sendResponse(w, http.StatusOK, "Successfully deleted category", nil)
 
+}
+
+func (h *CategoryHandler) sendResponse(w http.ResponseWriter, status int, message string, data any) {
 	response := models.Response{
-		Message: "Successfully deleted category",
+		Message: message,
+		Data:    data,
 	}
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(response)
 }

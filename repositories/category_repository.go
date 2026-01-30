@@ -3,7 +3,10 @@ package repositories
 import (
 	"database/sql"
 	"errors"
+
 	"kasir-api/models"
+
+	"github.com/lib/pq"
 )
 
 type CategoryRepository struct {
@@ -82,6 +85,15 @@ func (repo *CategoryRepository) Delete(id int) error {
 	query := "DELETE FROM categories WHERE id = $1"
 	result, err := repo.db.Exec(query, id)
 	if err != nil {
+
+		var pgErr *pq.Error
+		if errors.As(err, &pgErr) {
+			// fmt.Printf("Tipe error pq: [%s]\n", string(pgErr.Code))
+			if pgErr.Code == "23503" || pgErr.Code == "23001" {
+				return models.ErrCategoryHasProducts
+			}
+		}
+
 		return err
 	}
 
@@ -91,7 +103,7 @@ func (repo *CategoryRepository) Delete(id int) error {
 	}
 
 	if rows == 0 {
-		return errors.New("category not found")
+		return models.ErrCategoryNotFound
 	}
 	return nil
 
