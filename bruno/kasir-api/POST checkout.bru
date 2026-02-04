@@ -1,0 +1,31 @@
+meta {
+  name: POST checkout
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{base_url}}/api/checkout
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+      "items": [
+          {
+              "product_id": 3,
+              "quantity": 2
+          },
+          {
+              "product_id": 9,
+              "quantity": 1
+          }
+      ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
