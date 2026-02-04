@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"kasir-api/database"
 	"kasir-api/handlers"
+
 	"kasir-api/repositories"
 	"kasir-api/services"
 	"log"
@@ -42,13 +43,17 @@ func main() {
 	defer db.Close()
 
 	productRepo := repositories.NewProductRepository(db)
-
 	categoryRepo := repositories.NewCategoryRepository(db)
+	transactionRepo := repositories.NewTransactionRepository(db)
+
 	categoryService := services.NewCategoryService(categoryRepo)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
 	productService := services.NewProductService(productRepo, categoryRepo)
 	productHandler := handlers.NewProductHandler(productService)
+
+	transactionService := services.NewTransactionService(transactionRepo)
+	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
 	// setup routes
 	http.HandleFunc("/api/product", productHandler.HandleProducts)
@@ -56,6 +61,8 @@ func main() {
 
 	http.HandleFunc("/api/categories", categoryHandler.HandleCategory)
 	http.HandleFunc("/api/categories/", categoryHandler.HandleCategoryByID)
+
+	http.HandleFunc("/api/checkout", transactionHandler.HandleCheckout)
 
 	// localhost:8080/health
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
