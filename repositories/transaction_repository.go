@@ -42,6 +42,11 @@ func (repo *TransactionRepository) CreateTransaction(items []models.CheckoutItem
 		if err != nil {
 			return nil, err
 		}
+
+		// cek stock
+		if stock < item.Quantity {
+			return nil, fmt.Errorf("product %s only has %d stock", productName, stock)
+		}
 		// hitung current total = quantity * price
 		// ditambahin kedalalm subtotal
 		subtotal := item.Quantity * price
