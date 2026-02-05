@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"kasir-api/models"
+	"time"
 )
 
 type TransactionRepository struct {
@@ -34,7 +35,7 @@ func (repo *TransactionRepository) CreateTransaction(items []models.CheckoutItem
 		var productName string
 		var productID, price, stock int
 		// get product untuk dapetin price
-		err := tx.QueryRow("SELECT id, name,price, stock FROM products WHERE id = $1", item.ProductID).Scan(&productID, &productName, &price, &stock)
+		err := tx.QueryRow("SELECT id, name, price, stock FROM products WHERE id = $1", item.ProductID).Scan(&productID, &productName, &price, &stock)
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("product with id %d not found", item.ProductID)
 		}
@@ -56,6 +57,7 @@ func (repo *TransactionRepository) CreateTransaction(items []models.CheckoutItem
 		details = append(details, models.TransactionDetails{
 			ProductID:   productID,
 			ProductName: productName,
+			Price:       price,
 			Quantity:    item.Quantity,
 			Subtotal:    subtotal,
 		})
@@ -63,7 +65,8 @@ func (repo *TransactionRepository) CreateTransaction(items []models.CheckoutItem
 
 	// insert transaction
 	var transactionID int
-	err = tx.QueryRow("INSERT INTO transactions (total_amount) VALUES ($1) RETURNING id", totalAmount).Scan(&transactionID)
+	var createdAt time.Time
+	err = tx.QueryRow("INSERT INTO transactions (total_amount) VALUES ($1) RETURNING id, created_at", totalAmount).Scan(&transactionID, &createdAt)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +74,7 @@ func (repo *TransactionRepository) CreateTransaction(items []models.CheckoutItem
 	// insert transactionDetails
 	for i := range details {
 		details[i].TransactionID = transactionID
-		err = tx.QueryRow("INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES ($1, $2, $3, $4) RETURNING id", transactionID, details[i].ProductID, details[i].Quantity, details[i].Subtotal).Scan(&details[i].ID)
+		err = tx.QueryRow("INSERT INTO transaction_details (transaction_id, product_id, price, quantity, subtotal) VALUES ($1, $2, $3, $4, $5) RETURNING id", transactionID, details[i].ProductID, details[i].Price, details[i].Quantity, details[i].Subtotal).Scan(&details[i].ID)
 		if err != nil {
 			return nil, err
 		}
@@ -83,6 +86,7 @@ func (repo *TransactionRepository) CreateTransaction(items []models.CheckoutItem
 
 	res = &models.Transaction{
 		ID:          transactionID,
+		CreatedAt:   createdAt,
 		TotalAmount: totalAmount,
 		Details:     details,
 	}
