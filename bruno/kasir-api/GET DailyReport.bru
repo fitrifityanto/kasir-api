@@ -1,0 +1,15 @@
+meta {
+  name: GET DailyReport
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{base_url}}/api/report/hari-ini
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}
