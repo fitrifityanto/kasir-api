@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 
 	"kasir-api/models"
 	"kasir-api/services"
@@ -48,16 +49,16 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	products, err := h.service.GetAll(name)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Failed to get products: %v", err)
+		h.sendResponse(w, http.StatusInternalServerError, "Internal Server Error", nil)
+
 		return
 	}
-	response := models.Response{
-		Message: "Successfully retrieved products",
-		Data:    products,
+	message := "Successfully retrieved products"
+	if len(products) == 0 {
+		message = "No products found"
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-
+	h.sendResponse(w, http.StatusOK, message, products)
 }
 
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -69,26 +70,21 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	err = h.service.Create(&product)
 	if err != nil {
-		// http.Error(w, err.Error(), http.StatusBadRequest)
-		h.sendResponse(w, http.StatusBadRequest, err.Error(), nil)
+		log.Printf("Failed to create product: %v", err)
+		h.sendResponse(w, http.StatusInternalServerError, "Failed to create product", nil)
 		return
 	}
 
 	// ambil ulang data dari DB agar category_name terisi (JOIN)
 	fullProduct, err := h.service.GetByID(product.ID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		log.Printf("GetByID failed: %v", err)
+		h.sendResponse(w, http.StatusCreated, "Successfully created product", nil)
+
 		return
 	}
-
-	response := models.Response{
-		Message: "Successfully created product",
-		Data:    fullProduct,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(response)
-
+	message := "Successfully created product"
+	h.sendResponse(w, http.StatusCreated, message, fullProduct)
 }
 
 // HandleProductByID - GET/PUT/DELETE /api/product/{id}
@@ -190,8 +186,8 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	err = h.service.Delete(id)
 	if err != nil {
-		// http.Error(w, err.Error(), http.StatusInternalServerError)
-		h.sendResponse(w, http.StatusNotFound, err.Error(), nil)
+		log.Printf("Failed to delete product: %v", err)
+		h.sendResponse(w, http.StatusNotFound, "Failed to delete product", nil)
 		return
 	}
 

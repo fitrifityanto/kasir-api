@@ -5,6 +5,7 @@ import (
 	"errors"
 	"kasir-api/models"
 	"kasir-api/services"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -37,7 +38,8 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	categories, err := h.service.GetAll()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Failed to get categories: %v", err)
+		h.sendResponse(w, http.StatusInternalServerError, "Internal Server Error", nil)
 		return
 	}
 	response := models.Response{
@@ -160,12 +162,14 @@ func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		if errors.Is(err, models.ErrCategoryHasProducts) {
-			h.sendResponse(w, http.StatusConflict, err.Error(), nil)
+			log.Printf("Failed to delete category: %v", err)
+			h.sendResponse(w, http.StatusConflict, "Failed to delete category", nil)
 			return
 		}
 
 		if errors.Is(err, models.ErrCategoryNotFound) {
-			h.sendResponse(w, http.StatusNotFound, err.Error(), nil)
+			log.Printf("Failed to delete category: %v", err)
+			h.sendResponse(w, http.StatusNotFound, "Failed to delete category", nil)
 			return
 		}
 		// http.Error(w, err.Error(), http.StatusInternalServerError)
