@@ -69,6 +69,7 @@ func main() {
 	http.HandleFunc("/api/checkout", transactionHandler.HandleCheckout)
 
 	http.HandleFunc("/api/report/hari-ini", reportHandler.HandleReport)
+	http.HandleFunc("/api/report", reportHandler.GetReport)
 
 	// localhost:8080/health
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

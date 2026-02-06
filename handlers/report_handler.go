@@ -45,6 +45,29 @@ func (h *ReportHandler) GetDailyReport(w http.ResponseWriter, r *http.Request) {
 	h.sendResponse(w, http.StatusOK, message, dailyReport)
 }
 
+func (h *ReportHandler) GetReport(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.sendResponse(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
+		return
+	}
+	startDate := r.URL.Query().Get("start_date")
+	endDate := r.URL.Query().Get("end_date")
+	report, err := h.service.GetReport(startDate, endDate)
+	if err != nil {
+		log.Printf("Failed to get report: %v", err)
+
+		h.sendResponse(w, http.StatusInternalServerError, "Internal server error", nil)
+		return
+	}
+	message := "Successfully retrieved report with start_date and end_date"
+	if startDate == "" || endDate == "" {
+		message = "Successfully retrieved report"
+	}
+
+	h.sendResponse(w, http.StatusOK, message, report)
+
+}
+
 func (h *ReportHandler) sendResponse(w http.ResponseWriter, status int, message string, data any) {
 	response := models.Response{
 		Message: message,
