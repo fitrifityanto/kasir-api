@@ -16,3 +16,7 @@ func NewReportService(repo *repositories.ReportRepository) *ReportService {
 func (s *ReportService) GetDailyReport() (*models.DailyReport, error) {
 	return s.repo.GetDailyReport()
 }
+
+func (s *ReportService) GetReport(startDate, endDate string) (*models.FullReport, error) {
+	return s.repo.GetReport(startDate, endDate)
+}
