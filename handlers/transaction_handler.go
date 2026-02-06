@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"kasir-api/models"
 	"kasir-api/services"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -46,8 +47,11 @@ func (h *TransactionHandler) Checkout(w http.ResponseWriter, r *http.Request) {
 
 	products, err := h.service.Checkout(req.Items)
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "stock") {
-			h.sendResponse(w, http.StatusBadRequest, err.Error(), nil)
+		log.Printf("Failed to checkout: %v", err)
+		if strings.Contains(err.Error(), "not found") {
+			h.sendResponse(w, http.StatusNotFound, "Item not found", nil)
+		} else if strings.Contains(err.Error(), "stock") {
+			h.sendResponse(w, http.StatusBadRequest, "Insufficient stock", nil)
 		} else {
 			h.sendResponse(w, http.StatusInternalServerError, "Internal Server Error", nil)
 		}

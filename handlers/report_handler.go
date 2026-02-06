@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"kasir-api/models"
 	"kasir-api/services"
+	"log"
 	"net/http"
 )
 
@@ -22,19 +23,26 @@ func (h *ReportHandler) HandleReport(w http.ResponseWriter, r *http.Request) {
 		h.GetDailyReport(w, r)
 
 	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-
+		h.sendResponse(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
 	}
 }
 
 func (h *ReportHandler) GetDailyReport(w http.ResponseWriter, r *http.Request) {
 	dailyReport, err := h.service.GetDailyReport()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Failed to get daily report: %v", err)
+
+		h.sendResponse(w, http.StatusInternalServerError, "Internal sever error", nil)
 		return
 	}
 
-	h.sendResponse(w, http.StatusOK, "Successfully retrieved daily report", dailyReport)
+	message := "Successfully retrieved daily report"
+	if dailyReport.TotalSales == 0 {
+		message = "No transaction recorded today"
+
+	}
+
+	h.sendResponse(w, http.StatusOK, message, dailyReport)
 }
 
 func (h *ReportHandler) sendResponse(w http.ResponseWriter, status int, message string, data any) {
