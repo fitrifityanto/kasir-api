@@ -21,7 +21,8 @@ WITH stats AS (
         COALESCE(SUM(total_amount), 0) AS total_revenue,
         COUNT(id) AS total_sales
     FROM transactions
-    WHERE created_at::date = CURRENT_DATE
+    WHERE created_at >= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jakarta')::date
+    AND created_at < ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jakarta') + INTERVAL '1 day')::date
 ),
 top_product AS (
     SELECT 
@@ -29,7 +30,8 @@ top_product AS (
         SUM(quantity) AS quantity_sold
     FROM transaction_details td
     JOIN transactions t ON td.transaction_id = t.id
-    WHERE t.created_at::date = CURRENT_DATE
+    WHERE t.created_at >= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jakarta')::date
+    AND t.created_at < ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jakarta') + INTERVAL '1 day')::date
     GROUP BY product_name
     ORDER BY quantity_sold DESC, SUM(subtotal) DESC
     LIMIT 1
