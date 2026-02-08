@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"kasir-api/models"
+	"strings"
 	"time"
 )
 
@@ -77,12 +78,39 @@ func (repo *TransactionRepository) CreateTransaction(items []models.CheckoutItem
 	}
 
 	// insert transactionDetails
-	for i := range details {
+	var queryBuilder strings.Builder
+	queryBuilder.WriteString("INSERT INTO transaction_details (transaction_id, product_id, product_name, price, quantity, subtotal) VALUES ")
+
+	values := []any{}
+
+	for i, detail := range details {
+		n := i * 6
+		fmt.Fprintf(&queryBuilder, "($%d, $%d, $%d, $%d, $%d, $%d)", n+1, n+2, n+3, n+4, n+5, n+6)
+
+		if i < len(details)-1 {
+			queryBuilder.WriteString(",")
+		}
+
 		details[i].TransactionID = transactionID
-		err = tx.QueryRow("INSERT INTO transaction_details (transaction_id, product_id, product_name, price, quantity, subtotal) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", transactionID, details[i].ProductID, details[i].ProductName, details[i].Price, details[i].Quantity, details[i].Subtotal).Scan(&details[i].ID)
+		values = append(values, transactionID, detail.ProductID, detail.ProductName, detail.Price, detail.Quantity, detail.Subtotal)
+
+	}
+
+	queryBuilder.WriteString(" RETURNING id")
+	query := queryBuilder.String()
+	rows, err := tx.Query(query, values...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	i := 0
+	for rows.Next() {
+		err := rows.Scan(&details[i].ID)
 		if err != nil {
 			return nil, err
 		}
+		i++
 	}
 
 	if err := tx.Commit(); err != nil {
