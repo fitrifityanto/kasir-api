@@ -10,15 +10,19 @@ post {
   auth: inherit
 }
 
+headers {
+  X-API-Key: {{API_KEY}}
+}
+
 body:json {
   {
       "items": [
           {
               "product_id": 3,
-              "quantity": 2
+              "quantity": 4
           },
           {
-              "product_id": 9,
+              "product_id": 11,
               "quantity": 1
           }
       ]
