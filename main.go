@@ -64,33 +64,36 @@ func main() {
 	reportService := services.NewReportService(reportRepo)
 	reportHandler := handlers.NewReportHandler(reportService)
 
-	// setup routes
-	http.HandleFunc("/api/product", apiKeyMiddleware(productHandler.HandleProducts))
-	http.HandleFunc("/api/product/", apiKeyMiddleware(productHandler.HandleProductByID))
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/api/categories", categoryHandler.HandleCategory)
-	http.HandleFunc("/api/categories/", categoryHandler.HandleCategoryByID)
+	mux.HandleFunc("/api/product", apiKeyMiddleware(productHandler.HandleProducts))
+	mux.HandleFunc("/api/product/", apiKeyMiddleware(productHandler.HandleProductByID))
 
-	http.HandleFunc("/api/checkout", apiKeyMiddleware(transactionHandler.HandleCheckout))
+	mux.HandleFunc("/api/categories", categoryHandler.HandleCategory)
+	mux.HandleFunc("/api/categories/", categoryHandler.HandleCategoryByID)
 
-	http.HandleFunc("/api/report/hari-ini", apiKeyMiddleware(reportHandler.HandleReport))
-	http.HandleFunc("/api/report", apiKeyMiddleware(reportHandler.GetReport))
+	mux.HandleFunc("/api/checkout", apiKeyMiddleware(transactionHandler.HandleCheckout))
 
-	// localhost:8080/health
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/report/hari-ini", apiKeyMiddleware(reportHandler.HandleReport))
+	mux.HandleFunc("/api/report", apiKeyMiddleware(reportHandler.GetReport))
+
+	// Route umum
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok", "message": "API running"})
 	})
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"app": "Kasir API app", "maintainer": "Fitriningtyas", "message": "Server is running"})
 	})
 
+	handlerWithCORS := middlewares.CORS(mux)
+
 	fmt.Println("Server running di localhost:" + config.Port)
 
-	err = http.ListenAndServe(":"+config.Port, nil)
+	err = http.ListenAndServe(":"+config.Port, handlerWithCORS)
 	if err != nil {
-		fmt.Println("gagal running sever")
+		fmt.Println("gagal running server:", err)
 	}
 }
